@@ -8,6 +8,7 @@ from scanner.xss_scanner import test_xss
 from scanner.port_scanner import scan_ports
 from urllib.parse import urlparse
 
+import os
 import json
 
 app = Flask(__name__)
@@ -58,14 +59,19 @@ def scan():
         "vulnerabilities": all_vulnerabilities
     }
 
-    # Step 6: Save report to file
-    try:
-        with open("../reports/report.json", "w") as f:
-            json.dump(report_data, f, indent=4)
-    except:
-        # fallback path (if error)
-        with open("reports/report.json", "w") as f:
-            json.dump(report_data, f, indent=4)
+    # ✅ Step 6: Save report using ABSOLUTE PATH (FIXED)
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    reports_dir = os.path.join(BASE_DIR, "reports")
+
+    # Create reports folder if not exists
+    os.makedirs(reports_dir, exist_ok=True)
+
+    # Create full path
+    report_path = os.path.join(reports_dir, "report.json")
+
+    # Save file
+    with open(report_path, "w") as f:
+        json.dump(report_data, f, indent=4)
 
     # Step 7: Return clean response
     return jsonify({
